@@ -22,25 +22,25 @@ public class AuthService {
      * Tenta autenticar um usuário com base no nome de usuário e senha fornecidos.
      * Retorna true se a autenticação for bem-sucedida, false caso contrário.
      *
-     * @param uname O nome de usuário.
-     * @param pw A senha (ainda não hashed).
+     * @param username O nome de usuário.
+     * @param password A senha (ainda não hashed).
      * @return true se as credenciais são válidas, false caso contrário.
      */
-    public boolean auth(String uname, String pw) {
-        if (uname == null || pw == null || uname.isEmpty() || pw.isEmpty()) {
+    public boolean auth(String username, String password) {
+        if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
             return false;
         }
 
-        String storedHash = userDb.get(uname);
+        String storedHash = userDb.get(username);
 
         // Comparação de hash
-        boolean temp = (storedHash != null && storedHash.equals("hashed_" + pw));
+        boolean correctPassword = (storedHash != null && storedHash.equals("hashed_" + password));
 
-        if (temp) {
-            System.out.println("Autenticação bem-sucedida para " + uname);
+        if (correctPassword) {
+            System.out.println("Autenticação bem-sucedida para " + username);
             return true;
         } else {
-            System.out.println("Falha na autenticação para " + uname);
+            System.out.println("Falha na autenticação para " + username);
             return false;
         }
     }
@@ -56,10 +56,22 @@ public class AuthService {
             return null;
         }
         SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[24];
-        random.nextBytes(bytes);
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+
+        byte[] bytes = randomBytes(24);
+
+        String token = encodeBase64Password(bytes);
 
         return uname + ":" + token + ":" + SECRET_KEY.hashCode();
+    }
+
+    private byte[] randomBytes(int lenght) {
+        SecureRandom random = new SecureRandom();
+        byte[] randomBytes = new byte[lenght];
+        random.nextBytes(randomBytes);
+        return randomBytes;
+    }
+
+    private String encodeBase64Password(byte[] bytesArray) {
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytesArray);
     }
 }
